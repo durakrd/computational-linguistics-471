@@ -43,7 +43,7 @@ def cleanFileContents(f):
 
     # TODO: Your call to the re.sub function of the regular expression module here.
     # As is, the value of clean_text does not change.
-    clean_text = clean_text
+    clean_text = re.sub(r"\s\s+", " ", clean_text)
 
     # Do not forget to return the result!
     return clean_text
