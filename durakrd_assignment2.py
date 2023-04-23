@@ -116,11 +116,10 @@ def predictSimplistic(counts):
     # of the if-else block, or you can have three return statements within the if-else block.
     if pos_count > neg_count:
         return POS_REVIEW
-    if pos_count < neg_count:
+    elif pos_count < neg_count:
         return NEG_REVIEW
-
-    # TODO: You will modify the below return statement or move it into your if-else block when you write it.
-    return NONE
+    else:
+        return NONE
 
 
 # The main function is the entry point of the program.
