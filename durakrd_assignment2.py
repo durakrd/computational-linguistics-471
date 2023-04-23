@@ -107,7 +107,6 @@ NEG = 'bad'
 def predictSimplistic(counts):
     # This line retrieves the count for "good". If the word "good" is not found in "counts", it returns 0.
     pos_count = counts.get(POS, 0)
-
     # TODO: Write a similar statement below to retrieve the count of "bad".
     neg_count = counts.get(NEG, 0)
 
