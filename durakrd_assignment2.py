@@ -66,7 +66,7 @@ def countTokens(text):
 
     # TODO: Write a statement below calling split() on your text and storing the
     # result in a new variable.
-
+    tokens = text.split()
     # Now, we need to iterate over each word in the list of tokens
     # (write a for loop over the list that split() returned).
     # Inside the loop, that is, for each word, we will perform some conditional logic:
@@ -77,7 +77,10 @@ def countTokens(text):
     # the word is stored as a key, we will increment the count by 1.
 
     # TODO: Write a for loop here, doing what is described above.
-
+    for word in tokens:
+        if word not in token_counts:
+            token_counts[word] = 0
+        token_counts[word] += 1
     # Do not forget to return the result!
     return token_counts
 
@@ -104,13 +107,18 @@ NEG = 'bad'
 def predictSimplistic(counts):
     # This line retrieves the count for "good". If the word "good" is not found in "counts", it returns 0.
     pos_count = counts.get(POS, 0)
+
     # TODO: Write a similar statement below to retrieve the count of "bad".
-    # neg_count =
+    neg_count = counts.get(NEG, 0)
 
     # TODO: Write an if-elif-else block here, following the logic described in the function description.
     # Do not forget to return the prediction! You will be returning one of the constants declared above.
     # You may choose to store a prediction in a variable and then write the return statement outside
     # of the if-else block, or you can have three return statements within the if-else block.
+    if pos_count > neg_count:
+        return POS_REVIEW
+    if pos_count < neg_count:
+        return NEG_REVIEW
 
     # TODO: You will modify the below return statement or move it into your if-else block when you write it.
     return NONE
