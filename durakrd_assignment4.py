@@ -21,12 +21,6 @@ GOOD_REVIEW = 1
 BAD_REVIEW = 0
 ALPHA = 1
 
-def formatter(predictions, gold_labels):
-    """
-    Function takes in pandas prediction and label objects and converts them to a list of tuples (pred, label).
-    """
-    return list(zip(predictions, gold_labels))
-
 # This function will be reporting errors due to variables which were not assigned any value.
 # Your task is to get it working! You can comment out things which aren't working at first.
 def main(argv):
@@ -61,7 +55,13 @@ def main(argv):
     # If you are curious, you could read about TF-IDF,
     # e.g. here: https://www.geeksforgeeks.org/tf-idf-model-for-page-ranking/
     # or here: https://en.wikipedia.org/wiki/Tf%E2%80%93idf
+
     # TODO: Add a general brief comment on why choosing which words to count may be important.
+    # Properly weighing words that are used frequently but do not signify anything meaningful by themselves is important
+    # to prevent overfitting. Words such as "the" and "there" are used frequently and are inaccurate words to use to
+    # judge a review. Weighing them using the tf_idf vectorizer can make the models accurate and efficient.
+    # Additionally, the term frequency is used for laplace smoothing.
+
     tf_idf_vect = TfidfVectorizer(ngram_range=(1, 2))
     tf_idf_train = tf_idf_vect.fit_transform(X_train.values)
     tf_idf_test = tf_idf_vect.transform(X_test.values)
@@ -69,11 +69,24 @@ def main(argv):
     # TODO COMMENT: The hyperparameter alpha is used for Laplace Smoothing.
     # Add a brief comment, trying to explain, in your own words, what smoothing is for.
     # You may want to read about Laplace smoothing here: https://towardsdatascience.com/laplace-smoothing-in-na%C3%AFve-bayes-algorithm-9c237a8bdece
+    # Laplace smoothing is used for instances where a word that appears in the test dataset was not used to train the
+    # model. This would result in a zero probability in Naïve Bayes. Without laplace smoothing, the word would
+    # significantly alter the prediction the model makes. The term frequency is used to make an accurate assessment.
+
     clf = MultinomialNB(alpha=ALPHA)
+
     # TODO COMMENT: Add a comment explaining in your own words what the "fit()" method is doing.
+    # The fit() method uses the tf_idf and laplace smoothing algorithms to create a model. The model takes in values
+    # with their text weighted frequency and their corresponding gold labels. The model then "weighs" words to determine
+    # the likelihood it is associated with a positive or negative review.
+
     clf.fit(tf_idf_train, y_train)
 
     # TODO COMMENT: Add a comment explaining in your own words what the "predict()" method is doing in the next two lines.
+    # The predict() method takes in reviews that have have had their associated text weighting frequency and outputs
+    # corresponding predictions. The methods runs reviews or "values" through the model and perform Naïve Bayes
+    # probability calculations to determine whether a review is positive or negative.
+
     y_pred_train = clf.predict(tf_idf_train)
     y_pred_test = clf.predict(tf_idf_test)
 
@@ -82,8 +95,8 @@ def main(argv):
     # Note: If your methods there accept lists, you will probably need to cast your pandas label objects to simple python lists:
     # e.g. list(y_train) -- when passing them to your accuracy and precision and recall functions.
 
-    test_tuple_list = formatter(y_pred_test, y_test)
-    train_tuple_list = formatter(y_pred_train, y_train)
+    test_tuple_list = list(zip(y_pred_test, y_test))
+    train_tuple_list = list(zip(y_pred_train, y_train))
 
     accuracy_test = computeAccuracy(test_tuple_list)
     accuracy_train = computeAccuracy(train_tuple_list)
