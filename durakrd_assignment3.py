@@ -136,9 +136,7 @@ def computeAccuracy(predictions):
             correct_pred += 1
 
     accuracy = correct_pred / total_pred
-    print(round(accuracy, 4))
-
-    return NONE
+    return accuracy
 
 
 '''
@@ -171,10 +169,10 @@ def computePrecisionRecall(predictions, relevant_class):
             false_negatives += 1
 
     precision = true_positives / (true_positives + false_positives)
-    print(round(precision, 4))
+
     recall = true_positives / (true_positives + false_negatives)
-    print(round(recall, 4))
-    return None
+
+    return precision, recall
 
 
 # The main function is the entry point of the program.
@@ -201,9 +199,13 @@ def main(argv):
 
     full_pred = pos_pred + neg_pred
 
-    computeAccuracy(full_pred)
-    computePrecisionRecall(full_pred, POS_REVIEW)
-    computePrecisionRecall(full_pred, NEG_REVIEW)
+    print(round(computeAccuracy(full_pred), 4))
+    pos_tuple = computePrecisionRecall(full_pred, POS_REVIEW)
+    print(round(pos_tuple[0], 4))
+    print(round(pos_tuple[1], 4))
+    neg_tuple = computePrecisionRecall(full_pred, NEG_REVIEW)
+    print(round(neg_tuple[0], 4))
+    print(round(neg_tuple[1], 4))
 
 
 # The code below is needed so that this file can be used as a module,
