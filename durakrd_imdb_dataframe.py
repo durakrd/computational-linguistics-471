@@ -1,4 +1,4 @@
-# Skeleton for Assignment 4, Part 1
+# Skeleton for Assignment 5, Part 1
 # Created by Olga Zamaraeva for Ling471, Spring 2021
 # Updated by Matthew C. Kelley for Ling 471, Spring 2023
 
@@ -8,71 +8,101 @@ import string
 from pathlib import Path
 
 import pandas as pd
+import csv
 
-
-'''
-Write a function which accepts a list of 4 directories:
-train/pos, train/neg, test/pos, and test/neg.
-
-The result of calling this program on the 4 directories is a new .csv file in the working directory.
-'''
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
+import warnings
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
+import nltk
+from nltk.corpus import stopwords
+from nltk import stem
+from nltk.stem import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
 
 # Constants:
 POS = 1
 NEG = 0
 
-def createDataFrame(argv):
-    new_filename = "my_imdb_dataframe.csv"
-    # TODO: Create a single dataframe from the 4 IMBD directories (passed as argv[1]--argv[4]).
-    # For example, "data" can be a LIST OF LISTS.
-    # In this case, each list is a set of column values, e.g. ["0_2.txt", "neg", "test", "Once again Mr Costner..."].
-    # That is, each list represents a single row in your data frame.
-    # You may use a different way of creating a dataframe so long as the result is accurate.
-    # TODO: Call the cleanFileContents() function on each file, as you are iterating over them.
-    data = []
-    for directory in argv:
-        dir_path = Path(directory)
-        gold_label = dir_path.name
-        test_or_train = dir_path.parent.name
-        for file_path in dir_path.glob("*.txt"):
-            file = file_path.name
-            review = cleanFileContents(file_path)
-            data.append([file, gold_label, test_or_train, review])
 
-    # Your code here...
-    # Try to create a list of lists, for example, as illustrated above.
-    # Consider writing a separate function which takes a filename and returns a list representing the reivew vector.
-    # This will make your code here cleaner.
-    # HINT: You when you are trying to get the pos/neg value and the test/train value,
-    # you may want to use the `parts` attribute of a `Path` object
-
-    # Once you are done, the code below will only require modifications if your data variable is not a list of lists.
-    # Sample column names; you can use different ones if you prefer,
-    # but then make sure to make appropriate changes in assignment4_skeleton.py.
-    column_names = ["file", "label", "type", "review"]
-    # Sample way of creating a dataframe. This assumes that "data" is a LIST OF LISTS.
-    df = pd.DataFrame(data=data, columns=column_names)
-    # Saving to a file:
-    df.to_csv(new_filename)
-
-
-'''
-The function below should be called on a file name.
-It opens the file, reads its contents, and stores it in a variable.
-Then, it removes punctuation marks, and returns the "cleaned" text.
-'''
+def review_to_words(review, remove_stopwords=False, lemmatize=False):
+    # Getting an off-the-shelf list of English "stopwords"
+    stops = stopwords.words('english')
+    # Initializing an instance of the NLTK stemmer/lemmatizer class
+    sno = stem.SnowballStemmer('english')
+    # Removing HTML using BeautifulSoup preprocessing package
+    review_text = BeautifulSoup(review).get_text()
+    # Remove non-letters using a regular expression
+    review_text = re.sub("[^a-zA-Z]", " ", review_text)
+    # Tokenizing by whitespace
+    words = review_text.split()
+    # Recall "list comprehension" from the lecture demo and try to understand what the below loops are doing:
+    if remove_stopwords:
+        words = [w for w in words if not w in stops]
+    if lemmatize:
+        lemmas = [sno.stem(w).encode('utf8') for w in words]
+        # The join() function is a built-in method of strings.
+        # The below says: iterate over the "lemmas" list and create
+        # a new string where each item in "lemmas" is added to this new string,
+        # and the items are separated by a space.
+        # The b-thing is a quirk of the SnowballStemmer package.
+        return b" ".join(lemmas)
+    else:
+        return ' '.join(words)
 
 
 def cleanFileContents(f):
     with open(f, 'r', encoding='utf-8') as f:
         text = f.read()
-    clean_text = text.translate(str.maketrans('', '', string.punctuation))
-    clean_text = re.sub(r'\s+', ' ', clean_text)
-    return clean_text
+    cleaned_text = review_to_words(text)
+    lowercased = cleaned_text.lower()
+    no_stop = review_to_words(lowercased, remove_stopwords=True)
+    lemmatized = review_to_words(no_stop, lemmatize=True)
+    return (text, cleaned_text, lowercased, no_stop, lemmatized)
+
+
+def processFileForDF(f, table, label, type):
+    text, cleaned_text, lowercased, no_stop, lemmatized = cleanFileContents(f)
+    table.append([f.stem+'.txt', label, type, text,
+                 cleaned_text, lowercased, no_stop, lemmatized])
+
+
+def createDataFrames(argv):
+
+    data = []
+
+    # TODO: Your function from assignment 4, adapted for assignment 5 as needed, goes here.
+    # Do all the required preprocerssing.
+    for dir_num, directory in enumerate(argv):
+        dir_path = Path(directory)
+        gold_label = dir_path.name
+        test_or_train = dir_path.parent.name
+        for index, file_path in enumerate(dir_path.glob("*.txt")):
+            processFileForDF(file_path, data, gold_label, test_or_train)
+            if index % 100 == 0:
+                print("{} {}: Processing dir {}/4, file {} out of 12500"
+                      .format(test_or_train, gold_label, dir_num-2, index))
+
+    # TODO: The program will now be noticeably slower!
+    # To reassure yourself that the program is doing something, insert print statements as progress indicators.
+    # For example, for each 100th file, print out something like:
+    # "Processing directory 1 out of 4; file 99 out of 12500".
+    # The enumerate method iterates over both the items in the list and their indices, at the same time.
+    # Step through in the debugger to see what i and f are at step 1, step 2, and so forth.
+
+    # Your code goes here... Example of how to get not only a list element but also its index, below:
+    # for index, element in enumerate(['a','b','c','d']):
+    #    print("{}'s index is {}".format(element,index))
+
+    # Use the below column names if you like:
+    column_names = ["file", "label", "type", "review",
+                    "cleaned_review", "lowercased", "no stopwords", "lemmatized"]
+    df = pd.DataFrame(data=data, columns=column_names)
+    df.sort_values(by=['type', 'file'])
+    df.to_csv('my_imdb_expanded.csv')
 
 
 def main(argv):
-    createDataFrame(argv)
+    createDataFrames(argv)
 
 
 if __name__ == "__main__":
